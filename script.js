@@ -1,201 +1,223 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // DOM Elements
-    const todoInput = document.getElementById('todo-input');
+    const foodInput = document.getElementById('food-input');
+    const caloriesInput = document.getElementById('calories-input');
     const addBtn = document.getElementById('add-btn');
-    const todoList = document.getElementById('todo-list');
+    const foodList = document.getElementById('food-list');
     const emptyState = document.getElementById('empty-state');
-    const itemsLeft = document.getElementById('items-left');
-    const clearCompletedBtn = document.getElementById('clear-completed');
+    const caloriesConsumed = document.getElementById('calories-consumed');
+    const progressBar = document.getElementById('progress-bar');
+    const remainingCalories = document.getElementById('remaining-calories');
+    const dailyGoalEl = document.getElementById('daily-goal');
+    const goalBtn = document.getElementById('goal-btn');
+    const goalModal = document.getElementById('goal-modal');
+    const closeModal = document.getElementById('close-modal');
+    const goalInput = document.getElementById('goal-input');
+    const saveGoal = document.getElementById('save-goal');
     const filterBtns = document.querySelectorAll('.filter-btn');
     const dateDisplay = document.getElementById('date-display');
 
-    // App State
-    let todos = [];
-    let currentFilter = 'all';
+    let entries = [];
+    let dailyGoal = 2000;
+    let currentFilter = 'today';
 
-    // Set formatting for Date
+    const getTodayDate = () => {
+        const now = new Date();
+        return now.toISOString().split('T')[0];
+    };
+
+    const getTodayTime = () => {
+        const now = new Date();
+        return now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+    };
+
     const setDate = () => {
         const options = { weekday: 'long', month: 'short', day: 'numeric' };
         const today = new Date();
         dateDisplay.textContent = today.toLocaleDateString('en-US', options);
     };
 
-    // Load from Local Storage
-    const loadTodos = () => {
-        const storedTodos = localStorage.getItem('todos');
-        if (storedTodos) {
-            todos = JSON.parse(storedTodos);
+    const loadData = () => {
+        const storedEntries = localStorage.getItem('calorieEntries');
+        const storedGoal = localStorage.getItem('dailyGoal');
+
+        if (storedEntries) {
+            entries = JSON.parse(storedEntries);
         }
-        renderTodos();
+        if (storedGoal) {
+            dailyGoal = parseInt(storedGoal, 10);
+        }
+
+        renderEntries();
+        updateSummary();
     };
 
-    // Save to Local Storage
-    const saveTodos = () => {
-        localStorage.setItem('todos', JSON.stringify(todos));
-        updateStats();
-        checkEmptyState();
+    const saveData = () => {
+        localStorage.setItem('calorieEntries', JSON.stringify(entries));
+        localStorage.setItem('dailyGoal', dailyGoal.toString());
+        updateSummary();
     };
 
-    // Add new Todo
-    const addTodo = () => {
-        const text = todoInput.value.trim();
-        if (text !== '') {
-            const newTodo = {
+    const getTodayEntries = () => {
+        const today = getTodayDate();
+        return entries.filter(entry => entry.date === today);
+    };
+
+    const getFilteredEntries = () => {
+        if (currentFilter === 'today') {
+            return getTodayEntries();
+        }
+        return entries;
+    };
+
+    const addEntry = () => {
+        const foodName = foodInput.value.trim();
+        const calories = parseInt(caloriesInput.value, 10);
+
+        if (foodName !== '' && calories > 0) {
+            const newEntry = {
                 id: Date.now().toString(),
-                text: text,
-                completed: false
+                name: foodName,
+                calories: calories,
+                date: getTodayDate(),
+                time: getTodayTime()
             };
-            todos.unshift(newTodo);
-            todoInput.value = '';
-            
-            if (currentFilter === 'completed') {
-                currentFilter = 'all';
-                document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-                document.querySelector('[data-filter="all"]').classList.add('active');
-            }
-            
-            saveTodos();
-            renderTodos();
+
+            entries.unshift(newEntry);
+            foodInput.value = '';
+            caloriesInput.value = '';
+
+            saveData();
+            renderEntries();
         }
     };
 
-    // Toggle Todo Complete Status
-    const toggleTodo = (id) => {
-        todos = todos.map(todo => {
-            if (todo.id === id) {
-                return { ...todo, completed: !todo.completed };
-            }
-            return todo;
-        });
-        saveTodos();
-        renderTodos();
-    };
-
-    // Delete Todo
-    const deleteTodo = (id, element) => {
-        // Add fade out animation before removing
+    const deleteEntry = (id, element) => {
         element.classList.add('fadeOut');
-        
+
         setTimeout(() => {
-            todos = todos.filter(todo => todo.id !== id);
-            saveTodos();
-            renderTodos();
+            entries = entries.filter(entry => entry.id !== id);
+            saveData();
+            renderEntries();
         }, 300);
     };
 
-    // Clear Completed Todos
-    const clearCompleted = () => {
-        const completedElements = document.querySelectorAll('.todo-item.completed');
-        
-        completedElements.forEach(el => {
-            el.classList.add('fadeOut');
-        });
+    const updateSummary = () => {
+        const todayEntries = getTodayEntries();
+        const totalConsumed = todayEntries.reduce((sum, entry) => sum + entry.calories, 0);
+        const remaining = dailyGoal - totalConsumed;
+        const percentage = Math.min((totalConsumed / dailyGoal) * 100, 100);
 
-        setTimeout(() => {
-            todos = todos.filter(todo => !todo.completed);
-            saveTodos();
-            renderTodos();
-        }, 300);
+        caloriesConsumed.textContent = totalConsumed.toLocaleString();
+        progressBar.value = percentage;
+        remainingCalories.textContent = remaining.toLocaleString();
+        dailyGoalEl.textContent = dailyGoal.toLocaleString();
     };
 
-    // Update Items Left Counter
-    const updateStats = () => {
-        const activeTodos = todos.filter(todo => !todo.completed).length;
-        itemsLeft.textContent = `${activeTodos} item${activeTodos !== 1 ? 's' : ''} left`;
-        
-        const hasCompleted = todos.some(todo => todo.completed);
-        clearCompletedBtn.style.display = hasCompleted ? 'inline-block' : 'none';
-        clearCompletedBtn.style.opacity = hasCompleted ? '1' : '0';
-    };
-
-    // Check and update empty state display
     const checkEmptyState = () => {
-        const filteredTodos = getFilteredTodos();
-        if (filteredTodos.length === 0) {
+        const filteredEntries = getFilteredEntries();
+        if (filteredEntries.length === 0) {
             emptyState.style.display = 'flex';
-            todoList.style.display = 'none';
+            foodList.style.display = 'none';
         } else {
             emptyState.style.display = 'none';
-            todoList.style.display = 'block';
+            foodList.style.display = 'block';
         }
     };
 
-    // Get filtered todos based on current state
-    const getFilteredTodos = () => {
-        switch (currentFilter) {
-            case 'active':
-                return todos.filter(todo => !todo.completed);
-            case 'completed':
-                return todos.filter(todo => todo.completed);
-            default:
-                return todos;
-        }
-    };
+    const renderEntries = () => {
+        foodList.innerHTML = '';
+        const filteredEntries = getFilteredEntries();
 
-    // Render Todos to DOM
-    const renderTodos = () => {
-        todoList.innerHTML = '';
-        const filteredTodos = getFilteredTodos();
-
-        filteredTodos.forEach(todo => {
+        filteredEntries.forEach(entry => {
             const li = document.createElement('li');
-            li.className = `todo-item ${todo.completed ? 'completed' : ''}`;
-            li.dataset.id = todo.id;
+            li.className = 'food-item';
+            li.dataset.id = entry.id;
 
             li.innerHTML = `
-                <div class="checkbox-container">
-                    <input type="checkbox" ${todo.completed ? 'checked' : ''} class="todo-checkbox">
-                    <span class="checkmark"></span>
+                <div class="food-info">
+                    <span class="food-name">${escapeHTML(entry.name)}</span>
+                    <span class="food-time">${entry.date === getTodayDate() ? 'Today' : entry.date} at ${entry.time}</span>
                 </div>
-                <span class="todo-text">${escapeHTML(todo.text)}</span>
-                <button class="delete-btn" aria-label="Delete todo">
-                    <ion-icon name="trash-outline"></ion-icon>
-                </button>
+                <div class="food-calories">
+                    <span class="calories-badge">${entry.calories} cal</span>
+                    <button class="delete-btn" aria-label="Delete entry">
+                        <ion-icon name="trash-outline"></ion-icon>
+                    </button>
+                </div>
             `;
 
-            // Event listener for checkbox
-            const checkbox = li.querySelector('.todo-checkbox');
-            checkbox.addEventListener('change', () => toggleTodo(todo.id));
-
-            // Event listener for delete button
             const deleteBtn = li.querySelector('.delete-btn');
-            deleteBtn.addEventListener('click', () => deleteTodo(todo.id, li));
+            deleteBtn.addEventListener('click', () => deleteEntry(entry.id, li));
 
-            todoList.appendChild(li);
+            foodList.appendChild(li);
         });
 
-        updateStats();
         checkEmptyState();
     };
 
-    // Helper to escape HTML and prevent XSS
     const escapeHTML = (str) => {
         const div = document.createElement('div');
         div.textContent = str;
         return div.innerHTML;
     };
 
-    // Event Listeners
-    addBtn.addEventListener('click', addTodo);
+    const openGoalModal = () => {
+        goalInput.value = dailyGoal;
+        goalModal.classList.add('active');
+    };
 
-    todoInput.addEventListener('keypress', (e) => {
+    const closeGoalModal = () => {
+        goalModal.classList.remove('active');
+    };
+
+    const saveGoalHandler = () => {
+        const newGoal = parseInt(goalInput.value, 10);
+        if (newGoal >= 500 && newGoal <= 10000) {
+            dailyGoal = newGoal;
+            saveData();
+            closeGoalModal();
+        }
+    };
+
+    addBtn.addEventListener('click', addEntry);
+
+    foodInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') {
-            addTodo();
+            addEntry();
         }
     });
 
-    clearCompletedBtn.addEventListener('click', clearCompleted);
+    caloriesInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            addEntry();
+        }
+    });
+
+    goalBtn.addEventListener('click', openGoalModal);
+    closeModal.addEventListener('click', closeGoalModal);
+    saveGoal.addEventListener('click', saveGoalHandler);
+
+    goalModal.addEventListener('click', (e) => {
+        if (e.target === goalModal) {
+            closeGoalModal();
+        }
+    });
+
+    goalInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            saveGoalHandler();
+        }
+    });
 
     filterBtns.forEach(btn => {
         btn.addEventListener('click', () => {
             filterBtns.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             currentFilter = btn.dataset.filter;
-            renderTodos();
+            renderEntries();
         });
     });
 
-    // Initialize App
     setDate();
-    loadTodos();
+    loadData();
 });

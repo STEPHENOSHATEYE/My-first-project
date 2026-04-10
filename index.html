@@ -4,12 +4,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sleek To-Do List</title>
+    <title>Calorie Tracker</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <!-- Ionicons for beautiful icons -->
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
 </head>
@@ -17,38 +16,78 @@
 <body>
     <div class="app-container">
         <header>
-            <h1>My Tasks</h1>
+            <h1>Calorie Tracker</h1>
             <p id="date-display" class="date-display"></p>
         </header>
 
+        <div class="summary-card">
+            <div class="summary-header">
+                <span class="summary-label">Today's Progress</span>
+                <button id="goal-btn" class="goal-btn" aria-label="Set daily goal">
+                    <ion-icon name="flag-outline"></ion-icon>
+                </button>
+            </div>
+            
+            <div class="calories-consumed" id="calories-consumed">0</div>
+            <div class="consumed-label">calories consumed</div>
+            
+            <div class="progress-container">
+                <progress id="progress-bar" value="0" max="100"></progress>
+            </div>
+            
+            <div class="summary-footer">
+                <div class="stat-item">
+                    <span class="stat-value" id="remaining-calories">2000</span>
+                    <span class="stat-label">remaining</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value" id="daily-goal">2000</span>
+                    <span class="stat-label">goal</span>
+                </div>
+            </div>
+        </div>
+
         <main>
             <div class="input-section">
-                <input type="text" id="todo-input" placeholder="What needs to be done?" autocomplete="off">
-                <button id="add-btn" aria-label="Add Task">
-                    <ion-icon name="add-outline"></ion-icon>
-                </button>
+                <div class="input-row">
+                    <input type="text" id="food-input" placeholder="What did you eat?" autocomplete="off">
+                    <input type="number" id="calories-input" placeholder="Calories" min="0">
+                    <button id="add-btn" aria-label="Add food entry">
+                        <ion-icon name="add-outline"></ion-icon>
+                    </button>
+                </div>
             </div>
 
             <div class="filters">
-                <button class="filter-btn active" data-filter="all">All</button>
-                <button class="filter-btn" data-filter="active">Active</button>
-                <button class="filter-btn" data-filter="completed">Completed</button>
+                <button class="filter-btn active" data-filter="today">Today</button>
+                <button class="filter-btn" data-filter="all">All Time</button>
             </div>
 
-            <ul id="todo-list" class="todo-list">
-                <!-- Todo items will be inserted here -->
+            <ul id="food-list" class="food-list">
             </ul>
 
             <div class="empty-state" id="empty-state">
-                <ion-icon name="clipboard-outline"></ion-icon>
-                <p>You have no tasks yet.</p>
-            </div>
-
-            <div class="stats-container">
-                <span id="items-left">0 items left</span>
-                <button id="clear-completed!">Clear completed</button>
+                <ion-icon name="restaurant-outline"></ion-icon>
+                <p>No food logged yet today.</p>
             </div>
         </main>
+    </div>
+
+    <div class="modal" id="goal-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Set Daily Calorie Goal</h2>
+                <button class="modal-close" id="close-modal" aria-label="Close modal">
+                    <ion-icon name="close-outline"></ion-icon>
+                </button>
+            </div>
+            <div class="modal-body">
+                <input type="number" id="goal-input" placeholder="Enter daily calorie goal" min="500" max="10000">
+            </div>
+            <div class="modal-footer">
+                <button id="save-goal" class="save-btn">Save Goal</button>
+            </div>
+        </div>
     </div>
 
     <script src="script.js"></script>
