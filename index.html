@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sleek To-Do List</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <!-- Ionicons for beautiful icons -->
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <header>
+            <h1>My Tasks</h1>
+            <p id="date-display" class="date-display"></p>
+        </header>
+
+        <main>
+            <div class="input-section">
+                <input type="text" id="todo-input" placeholder="What needs to be done?" autocomplete="off">
+                <button id="add-btn" aria-label="Add Task">
+                    <ion-icon name="add-outline"></ion-icon>
+                </button>
+            </div>
+
+            <div class="filters">
+                <button class="filter-btn active" data-filter="all">All</button>
+                <button class="filter-btn" data-filter="active">Active</button>
+                <button class="filter-btn" data-filter="completed">Completed</button>
+            </div>
+
+            <ul id="todo-list" class="todo-list">
+                <!-- Todo items will be inserted here -->
+            </ul>
+            
+            <div class="empty-state" id="empty-state">
+                <ion-icon name="clipboard-outline"></ion-icon>
+                <p>You have no tasks yet.</p>
+            </div>
+            
+            <div class="stats-container">
+                <span id="items-left">0 items left</span>
+                <button id="clear-completed">Clear completed</button>
+            </div>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
